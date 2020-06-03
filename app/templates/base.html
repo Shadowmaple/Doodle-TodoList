@@ -1,0 +1,46 @@
+{% extends 'bootstrap/base.html' %}
+
+{% block title %}
+    {% if title %}
+        {{ title }} - Todo-List
+    {% else %}
+        Todo-List
+    {% endif %}
+{% endblock %}
+
+{% block navbar %}
+ <nav class="navbar navbar-inverse container">
+        <div class="navbar-header"> <a class="navbar-brand" href="{{ url_for('get_list') }}">TODO</a> </div>
+        <!--logout links -->
+        {% if current_user.is_authenticated %}
+
+            <ul class="nav navbar-nav pull-right">
+                <li><a class="btn" href="{{ url_for('logout') }}">退出登录</a></li>
+            </ul>
+        {% else %}
+            <ul class="nav navbar-nav pull-right">
+                <li><a class="btn" href="{{ url_for('register') }}">注册</a></li>
+            </ul>
+            <ul class="nav navbar-nav pull-right">
+                <li><a class="btn" href="{{ url_for('login') }}">登录</a></li>
+            </ul>
+        {% endif %}
+    </nav>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-info" role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {# application content needs to be provided in the app_content block #}
+        {% block app_content %}{% endblock %}
+    </div>
+{% endblock %}
+
+
