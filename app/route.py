@@ -1,10 +1,12 @@
-from . import app, db
-from form import LoginForm, RegistrationForm, TodoListForm, UserForm
-from .model import User, List, load_user
-
-from flask import request, redirect, url_for, render_template, flash
-from flask_login import current_user, login_user, logout_user, login_required
 import datetime
+
+from flask import flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required, login_user, logout_user
+
+from form import LoginForm, RegistrationForm, TodoListForm, UserForm
+
+from . import app, db
+from .model import List, User, load_user
 
 status_dic = {0: '未完成', 1: '已完成'}
 
@@ -67,7 +69,6 @@ def logout():
 # user routers
 """ ---- user routers --- """
 
-
 # 获取用户信息/用户主页
 @app.route('/user/info/', methods=['GET'])
 @login_required
@@ -99,7 +100,6 @@ def update_user_info():
 
 
 """ ---- todo-list routers --- """
-
 
 # 获取todo-list
 @app.route('/', methods=['GET'])
