@@ -1,17 +1,16 @@
 from . import app, db
-from form import LoginForm, RegistrationForm, TodoListForm
+from form import LoginForm, RegistrationForm, TodoListForm, UserForm
 from .model import User, List, load_user
 
-from flask import jsonify, request, redirect, url_for, render_template, flash
+from flask import request, redirect, url_for, render_template, flash
 from flask_login import current_user, login_user, logout_user, login_required
+import datetime
 
+status_dic = {0: '未完成', 1: '已完成'}
 
-# @app.route('/')
-# def index():
-#     # redirect(url_for('login'))
-#     return "hello"
+""" ---- auth routers --- """
 
-
+# 登录
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
@@ -34,6 +33,7 @@ def login():
     return redirect('/')
 
 
+# 注册
 @app.route('/register/', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
@@ -42,95 +42,107 @@ def register():
 
     username = request.form['username']
     password = request.form['password']
-    if username is None or password is None:
+    nick_name = request.form['nick_name']
+    if username is None or password is None or nick_name is None:
         flash('Invalid')
         return redirect('/register/')
 
-    user = User(username=username, nick_name=username)
+    user = User(username=username, nick_name=nick_name)
     user.set_password(password)
     db.session.add(user)
     db.session.commit()
     flash('register ok')
-    return redirect('/')
+    return redirect('/login')
 
 
+# 登出
 @app.route('/logout/')
 @login_required
 def logout():
     logout_user()
     flash('logout ok')
-    return redirect(url_for('login'))
+    return redirect('/login')
 
 
-@app.route('/password/reset/', methods=['GET'])
+# user routers
+""" ---- user routers --- """
+
+
+# 获取用户信息/用户主页
+@app.route('/user/info/', methods=['GET'])
 @login_required
-def reset_password():
-    pass
-
-# d
-#
+def get_user_info():
+    user = load_user(current_user.id)
+    return render_template('user_profile.html', title='用户信息', user=user)
 
 
-@app.route('/user/<int:id>/', methods=['GET'])
+# 修改用户信息
+@app.route('/user/update/', methods=['GET', 'POST'])
 @login_required
-def get_user_info(id):
-    return
+def update_user_info():
+    if request.method == 'GET':
+        user = User.query.filter_by(id=current_user.id).first()
+        form = UserForm(
+            username=user.username,
+            nick_name=user.nick_name,
+        )
+        return render_template('user_update.html', title='用户信息', form=form)
+
+    form = UserForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(id=current_user.id).first()
+        user.username = form.username.data
+        user.nick_name = form.nick_name.data
+        db.session.commit()
+        flash('update user info')
+    return redirect(url_for('get_user_info'))
 
 
-@app.route('/user/<int:id>/', methods=['PUT'])
-@login_required
-def update_user_info(id):
-    pass
+""" ---- todo-list routers --- """
 
 
-# @app.route('/list/', methods=['GET'])
+# 获取todo-list
 @app.route('/', methods=['GET'])
 @login_required
 def get_list():
-    """
-    获取列表，未完成/已完成
-    """
-    # type = request.query_string('type')
-    # if type is None or type != 'todo' and type != 'done':
-    #     return redirect('/list/')
-    #
-    # if type == 'todo':
-    #     list = List.query.filter_by(List.status == 0 or List.status == 2).all()
-    #     dic = {}
-    #     for d in list:
-    #
-    #     data = jsonify()
-    #     return ''
-
-    list = List.query.filter(List.status == 0 or List.status == 2)
-    return render_template('list.html', list=list)
+    form = TodoListForm()
+    todo_list = List.query.filter(List.user_id == current_user.id).all()
+    list = []
+    for t in todo_list:
+        list.append({
+            'id': t.id,
+            'title': t.title,
+            'content': t.content,
+            'status': status_dic[t.status],
+            'time': t.time,
+        })
+    return render_template('index.html', list=list, form=form)
 
 
+# 新增todo-list
 @app.route('/list/', methods=['GET', 'POST'])
 @login_required
 def create_list():
+    form = TodoListForm()
     if request.method == 'GET':
-        form = TodoListForm()
-        return render_template('todo_list.html', title='todo-list', form=form)
+        return render_template('todo_list.html', form=form)
 
-    title = request.form['title']
-    content = request.form['content']
-    status = request.form['status']
-    time = request.form['time']
-    user_id = load_user()
-    list = List(title=title, content=content, status=status, time=time, user_id=user_id)
-    db.session.add(list)
-    db.session.commit()
+    if form.validate_on_submit():
+        todo_list = List(
+            title=form.title.data,
+            content=form.content.data,
+            status=form.status.data,
+            time=datetime.datetime.now(),
+            user_id=current_user.id,
+        )
+        db.session.add(todo_list)
+        db.session.commit()
+        flash('add a new todo list')
     return redirect('/')
 
 
-@app.route('/list/<int:id>/', methods=['GET'])
-@login_required
-def get_list_info(id):
-    return
-
-
-@app.route('/list/<int:id>/', methods=['GET', 'PUT'])
+# 修改todo-list
+@app.route('/list/<int:id>/update/', methods=['GET', 'POST'])
 @login_required
 def update_list(id):
     if request.method == 'GET':
@@ -141,27 +153,23 @@ def update_list(id):
             status=todo_list.status,
             time=todo_list.time
         )
-        # form.title.data = todo_list.title
-        # form.content.data = todo_list.content
-        # form.status.data = todo_list.status
-        # form.time.data = todo_list.time
-        return render_template('todo_list.html', title='todo-list', form=form)
+        return render_template('todo_list.html', form=form)
 
     todo_list = List.query.filter_by(id=id).first()
     todo_list.title = request.form['title']
     todo_list.content = request.form['content']
     todo_list.status = request.form['status']
-    todo_list.time = request.form['time']
     db.session.commit()
-    flash('update the todo list')
+    flash('update a todo list')
     return redirect('/')
 
 
-@app.route('/list/<int:id>/', methods=['DELETE'])
+# 删除todo-list
+@app.route('/list/<int:id>/delete/')
 @login_required
 def delete_list(id):
     todo_list = List.query.filter_by(id=id).first()
     db.session.delete(todo_list)
     db.session.commit()
-    flash('delete the todo list')
+    flash('delete a todo list')
     return redirect('/')

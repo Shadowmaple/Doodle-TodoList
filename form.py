@@ -12,14 +12,15 @@ class LoginForm(FlaskForm):
 
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired()])
+    username = StringField('Username', validators=[DataRequired(), length(1, 20)])
+    nick_name = StringField('Nick_name', validators=[DataRequired(), length(1, 20)])
+    password = PasswordField('Password', validators=[DataRequired(), length(1, 20)])
     password2 = PasswordField(
         'Repeat Password', validators=[DataRequired(), EqualTo('password')])
-    submit = SubmitField('Register')
+    submit = SubmitField('注册')
 
     @staticmethod
-    def validate_username(self, username):
+    def validate_username(username):
         user = User.query.filter_by(username=username.data).first()
         if user is not None:
             raise ValidationError('Please use a different username.')
@@ -28,6 +29,11 @@ class RegistrationForm(FlaskForm):
 class TodoListForm(FlaskForm):
     title = StringField('标题', validators=[DataRequired(), length(1,20)])
     content = StringField('内容', validators=[length(0, 250)])
-    status = RadioField('是否完成', validators=[DataRequired()], choices=[('0', '未完成'), ('1', '已完成'), ('2', '已过期')])
-    time = DateTimeField('time', validators=[DataRequired()])
+    status = RadioField('是否完成', validators=[DataRequired()], choices=[('0', '未完成'), ('1', '已完成')])
     submit = SubmitField('提交')
+
+
+class UserForm(FlaskForm):
+    username = StringField('用户名', validators=[DataRequired(), length(1, 20)])
+    nick_name = StringField('昵称', validators=[DataRequired(), length(1, 20)])
+    submit = SubmitField('保存')

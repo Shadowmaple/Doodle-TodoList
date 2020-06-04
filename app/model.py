@@ -31,9 +31,6 @@ class List(db.Model):
     time = db.Column(db.DateTime)
     user_id = db.Column(db.Integer, index=True)
 
-    def __repr__(self):
-        return super().__repr__()
-
 
 @login.user_loader
 def load_user(id):

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block page_content %}
+    <a href="{{ url_for('update_user_info') }}" class="btn btn-primary btn-lg pull-right" role ="button">修改信息</a>
+    <br><br><br>
+
+    <h1>用户信息</h1>
+    <br>
+    <div>
+        <span>用户名：</span>
+        <span>{{ user.username }}</span>
+    </div>
+    <br>
+    <div>
+        <span>昵称：</span>
+        <span>{{ user.nick_name }}</span>
+    </div>
+
+{% endblock %}
+
+

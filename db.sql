@@ -27,4 +27,6 @@ CREATE TABLE `list` (
 
 -- INSERT INTO `user`(`username`, `password`, `nick_name`) VALUES('admin', '', 'admin');
 
--- INSERT INTO `list`(`title`, `content`, `status`, `time`, `user_id`) VALUES('test', 'test', 0, 2020-6-1 8:20:20, 1);
+INSERT INTO `list`(`title`, `content`, `status`, `time`, `user_id`)
+VALUES('test', 'test', 0, '2020-06-01 09:05:00', 1), ('天气', '明天晴', 1, '2020-6-1 10:00:00', 1);
+

@@ -11,11 +11,12 @@
 {% block navbar %}
  <nav class="navbar navbar-inverse container">
         <div class="navbar-header"> <a class="navbar-brand" href="{{ url_for('get_list') }}">TODO</a> </div>
-        <!--logout links -->
         {% if current_user.is_authenticated %}
-
             <ul class="nav navbar-nav pull-right">
                 <li><a class="btn" href="{{ url_for('logout') }}">退出登录</a></li>
+            </ul>
+            <ul class="nav navbar-nav pull-right">
+                <li><a class="btn" href="{{ url_for('get_user_info') }}">用户</a></li>
             </ul>
         {% else %}
             <ul class="nav navbar-nav pull-right">
@@ -38,8 +39,7 @@
         {% endif %}
         {% endwith %}
 
-        {# application content needs to be provided in the app_content block #}
-        {% block app_content %}{% endblock %}
+        {% block page_content %}{% endblock %}
     </div>
 {% endblock %}
 
